@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" dest="err">
+    <Appenders>
+        <Console name="STDOUT">
+            <PatternLayout pattern="[%level] [%d{yyyy-MM-dd HH:mm:ssZ}] [%c{1}:%line] %msg%n"/>
+        </Console>
+        <RollingFile name="RollingFileAppender" fileName="app.log"
+                     filePattern="$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>%d %p %c - %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="20 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10" />
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="STDOUT"/>
+        </Root>
+        <Logger name="com.wd" level="INFO" additivity="false">
+            <AppenderRef ref="RollingFileAppender"/>
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
+    </Loggers>
+</Configuration>

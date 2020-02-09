@@ -1,0 +1,42 @@
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+# run this after deleting a .git/: git rm --cached -rf .
+
+target/
+build/
+node_modules/
+logs/
+dump/
+.mvn/
+.idea/
+spark-warehouse/
+data/output/
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.java-version
+
+mvnw*
+*.log*
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+.idea/
+
+.gitKeep
+src/css/*.css
+.vscode/launch.json
