@@ -91,6 +91,7 @@ public class TextParserTest {
     public void equalsAnyTest() {
         assertTrue(equalsAny("FOO", asList("FOO", "BOO")));
         assertFalse(equalsAny("FOOL", asList("FOO", "BOO")));
+        assertFalse(equalsAny("MOO AND FOO", asList("FOO", "BOO")));
     }
 
     @Test
