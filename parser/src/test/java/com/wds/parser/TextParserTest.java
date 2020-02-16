@@ -133,6 +133,7 @@ public class TextParserTest {
         assertEquals(removeLastChar("DOT.", regex), "DOT");
         assertEquals(removeLastChar("SEMICOLUMN;", regex), "SEMICOLUMN");
         assertEquals(removeLastChar("COLUMN:", regex), "COLUMN");
+        assertEquals("PRIMAL SCREAM/IRVINE WELSH", removeLastChar("PRIMAL SCREAM/IRVINE WELSH &", ".*&$"));
     }
 
     @Test

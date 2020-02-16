@@ -85,7 +85,7 @@ public final class TextParser {
      */
     public static String removeLastChar(String s, String regex) {
         if(s.matches(regex)) //
-            return StringUtils.chop(s);
+            return StringUtils.chop(s).trim();
         return s;
     }
 
