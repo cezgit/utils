@@ -41,6 +41,7 @@ public class TextParserTest {
     public static final Map<String, String> TITLE_TOKEN_RENAME_MAP = Collections.unmodifiableMap(
             Stream.of(
                     new AbstractMap.SimpleEntry<>(" & ", " AND "),
+                    new AbstractMap.SimpleEntry<>("(R&B)", ""),
                     new AbstractMap.SimpleEntry<>("A M", "A.M."),
                     new AbstractMap.SimpleEntry<>("B THERE", "BE THERE"),
                     new AbstractMap.SimpleEntry<>("BLOWIN'", "BLOWING"),
@@ -164,6 +165,7 @@ public class TextParserTest {
         assertEquals(tokenReplacer.apply("BREAK-A-WAY", TITLE_TOKEN_RENAME_MAP), "BREAKAWAY");
         assertEquals(tokenReplacer.apply("BREAK & WAY", TITLE_TOKEN_RENAME_MAP), "BREAK AND WAY");
         assertEquals(tokenReplacer.apply("G.L.A.D.", TITLE_TOKEN_RENAME_MAP), "G.L.A.D.");
+//        assertEquals(tokenReplacer.apply("SYLVIA (R&B)", TITLE_TOKEN_RENAME_MAP), "SYLVIA"); // this one fails
     }
 
     @Test
