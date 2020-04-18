@@ -173,6 +173,7 @@ public class TextParserTest {
         assertEquals("IT'S N BLOWING'", removeSurroundingQuotes("IT'S 'N' BLOWING'"));
         assertEquals("IT'S N WORD", removeSurroundingQuotes("IT'S \"N\" WORD"));
         assertEquals("IT'S 'N WORD", removeSurroundingQuotes("IT'S 'N WORD"));
+        assertEquals("NO MORE I LOVE YOU'S", removeSurroundingQuotes("NO MORE \"I LOVE YOU'S\""));
     }
 
     @Test

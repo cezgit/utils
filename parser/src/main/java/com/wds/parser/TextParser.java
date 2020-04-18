@@ -126,7 +126,9 @@ public final class TextParser {
      * remove single or double surrounding quotes
      */
     public static String removeSurroundingQuotes(String s) {
-        return fixMultiSpaces(s.replaceAll("('|\")([A-Z]+)('|\")", "$2"));
+        s = fixMultiSpaces(s.replaceAll("'([^\\s]+)'", "$1"));
+        return fixMultiSpaces(s.replaceAll("\"(.*)\"", "$1"));
+
     }
 
     /**
