@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -13,6 +14,10 @@ import static java.util.Arrays.asList;
 public final class TextParser {
 
     private TextParser() {}
+
+    public static final String nonAlphaNumericAndSpace = "[^a-zA-Z0-9 ]";
+
+    public static Function<String, String> nonAlphaNumericCharRemover = s -> fixMultiSpaces(s.replaceAll(nonAlphaNumericAndSpace, StringUtils.EMPTY));
 
     /**
      * return true if s contains any value from the list
@@ -231,7 +236,7 @@ public final class TextParser {
         if(!lastWord.isPresent())
             return s;
         return values.contains(lastWord.get()) ?
-            s.substring(0, s.lastIndexOf(lastWord.get())).trim() : s;
+                s.substring(0, s.lastIndexOf(lastWord.get())).trim() : s;
     }
 
     /**
@@ -594,220 +599,14 @@ public final class TextParser {
         return count >= countWords(s) ? s : String.join(StringUtils.SPACE, firstWordsAsList(s, count));
     }
 
+    /**
+     * return the first words from a string
+     * @param s
+     * @param count
+     * @return
+     */
     public static List<String> firstWordsAsList(String s, int count) {
         List<String> list = breakBySpace(s);
         return count >= list.size() ? list : list.subList(0, count);
     }
-
-    public static List<String> firstValidWordsAsList(String s, List<String> invalidEndings, int count) {
-
-        List<String> list = firstWordsAsList(s, count);
-        int i = list.size();
-        while(i > 0) {
-            if(endsWithAny(list.get(i-1), invalidEndings)) {
-                i--;
-            }
-            else {
-                break;
-            }
-        }
-        return i == 0 ? list : list.subList(0, i);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    public static boolean containsAnyWord(String s, List<String> values) {
-//        String regex = getContainsAnyRegex(values);
-//        return s.matches(regex);
-//    }
-
-
-
-
-
-//    public static boolean anyContainsWord(List<String> list, String value) {
-//        String regex = getContainsAnyRegex(asList(value));
-//        return list.stream().parallel().anyMatch(l -> l.matches(regex));
-//    }
-//
-//    public static boolean endsWithAny(String s, List<String> values) {
-//        return values.stream().parallel().anyMatch(s::endsWith);
-//    }
-//
-
-//
-//    public static boolean startsWithAnyWord(String s, List<String> values) {
-//        String regex = getStartWithWordMatchRegex(values);
-//        return s.matches(regex);
-//    }
-//
-//    /** =============== other =============**/
-//
-//
-//    public static Optional<String> getLastWord(String s) {
-//        if(StringUtils.isBlank(s)) return Optional.empty();
-//        List<String> words = asList(s.split("\\s+"));
-//        return Optional.of(words.get(words.size()-1));
-//    }
-//
-//    public static String getLastWordBroken(String s) {
-//        List<String> words = asList(s.split("\\s+"));
-//        return words.get(words.size()-1);
-//    }
-//
-//    public static Optional<String> getFirstWord(String s) {
-//        if(StringUtils.isBlank(s)) return Optional.empty();
-//        return asList(s.split("\\s+")).stream()
-//                .filter(StringUtils::isNotBlank)
-//                .findFirst();
-//    }
-//
-
-//
-//    public static Optional<String> getLastElement(Set<String> l) {
-//        if(l.isEmpty())
-//            return Optional.empty();
-//        return l.stream().skip(l.size() - 1).findFirst();
-//    }
-//
-//    public static List<String> getLastTokensAsList(String s, Integer tokenCount) {
-//        return getLastTokensAsList(breakBySpace(s), tokenCount);
-//    }
-//
-//    public static List<String> getLastTokensAsList(List<String> list, Integer tokenCount) {
-//        if(list.size() <= tokenCount) {
-//            return list;
-//        }
-//        return list.subList(list.size() - tokenCount, list.size());
-//    }
-//
-//    public static Set<String> getUniqueTokensFromListOfStrings(List<String> list) {
-//        Set<String> result = new HashSet<>();
-//        list.forEach(s -> result.addAll(breakBySpace(s)));
-//        return result;
-//    }
-//
-//
-//
-//    public static String getStartWithWordMatchRegex(List<String> matches) {
-//        return "^?" + getEqualsAnyRegex(matches) + ".*$";
-//    }
-//
-//
-//
-    public static List<String> findAllSequentialStringCombinations(List<String> tokens) {
-        List<String> combs = new ArrayList<>();
-        List<String> visited = new ArrayList<>();
-
-        tokens.forEach(w -> {
-            visited.add(w);
-            int size = visited.size();
-            for(int i = size-1; i >= 0; i--) {
-                combs.add(String.join(StringUtils.SPACE, visited.subList(i, size)));
-            }
-        });
-        combs.sort((l1, l2) -> breakBySpace(l2).size() - breakBySpace(l1).size()); // biggest to smallest
-        return combs;
-    }
-
-    public static List<String> getContiguousMatches(String s1, String s2) {
-
-        List<String> s1Tokens = breakBySpace(s1), s2Tokens = breakBySpace(s2);
-        List<List<String>> all = asList(s1Tokens, s2Tokens);
-        all.sort((l1, l2) -> l2.size() - l1.size()); // biggest to smallest
-
-        List<String> longList = all.get(0);
-        List<String> shortList = all.get(1);
-
-        Set<String> matches = new HashSet<>();
-
-        String sLongest = String.join(StringUtils.SPACE, longList);
-        List<String> contiguousCombinations = findAllSequentialStringCombinations(shortList);
-        List<String> temp = new ArrayList<>();
-
-        contiguousCombinations.forEach(s -> {
-            if(sLongest.contains(s)){
-                if(matches.isEmpty())
-                    matches.add(s);
-                else {
-                    if(!anyContains(new ArrayList<>(matches), s))
-                        temp.add(s);
-                    matches.addAll(temp);
-                    temp.clear();
-                }
-            }
-        });
-        return new ArrayList(matches);
-    }
-//
-//    public static List<String> getCommonTokens(String s1, String s2) {
-//        List<String> intersect = Sets.newHashSet(breakBySpace(s1)).stream()
-//                .filter(Sets.newHashSet(breakBySpace(s2))::contains)
-//                .collect(Collectors.toList());
-//        return intersect;
-//    }
-//
-//    public static Optional<String> getLastContentBetween(String s, String from, String to) {
-//        int fromIndex = s.lastIndexOf(from);
-//        int toIndex = s.indexOf(to, fromIndex);
-//
-//        if(fromIndex >= 0 && toIndex > 0)
-//            return Optional.of(s.substring(fromIndex+1, toIndex).trim());
-//        return Optional.empty();
-//    }
-//
-//    public static Optional<String> getBracketedContentIfRightBracketIsLastChar(String s, boolean round, boolean square, boolean curly) {
-//        if(endsWithAny(s, asList(")", "]", "}"))) {
-//            if(round && s.endsWith(")"))
-//                return getLastContentBetween(s, "(", ")");
-//            else if(square && s.endsWith("]"))
-//                return getLastContentBetween(s, "[", "]");
-//            else if(curly && s.endsWith("}"))
-//                return getLastContentBetween(s, "{", "}");
-//        }
-//        return Optional.empty();
-//    }
-//
-//    public static String joinAsString(Set<String> ss) {
-//        return ss.size() == 1 ? ss.stream().findFirst().get() : ss.stream().reduce(StringUtils.EMPTY, (a, b) -> (a + StringUtils.SPACE + b)).trim();
-//    }
-//
-//
-//
-//    public static int countWords(String s) {
-//        return StringUtils.isBlank(s) ? 0 : s.split("\\s+").length;
-//    }
-//
-//    public static int countWords(List<String> listOfMultiTokenStrings) {
-//        return joinAsString(listOfMultiTokenStrings).split("\\s+").length;
-//    }
 }
