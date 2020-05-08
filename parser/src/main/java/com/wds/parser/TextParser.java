@@ -483,36 +483,6 @@ public final class TextParser {
     }
 
     /**
-     * remove the first and last chars from s if they match the regular expression
-     * @param s
-     * @param regex
-     * @return
-     */
-    @Deprecated // replaced by removeFromStartOrEndIfMatch
-    public static String removeFirstAndLastCharsIfMatch(String s, String regex) {
-        if(s.matches(format("^%s.*$", regex))) {
-            s = s.replaceFirst(regex, StringUtils.EMPTY);
-        }
-        if(s.matches(format("^.*%s$", regex))) {
-            s = s.substring(0, s.length()-1);
-        }
-        return s.trim();
-    }
-
-    /**
-     * remove the first and last words from s if they match any string from the list
-     * @param s
-     * @param matches
-     * @return
-     */
-    @Deprecated // replaced by removeFromStartOrEndIfMatch
-    public static String removeFirstAndLastWordsIfMatch(String s, List<String> matches) {
-        s = s.replaceFirst("^"+getEqualsAnyRegex(matches), StringUtils.EMPTY);
-        s = removeIfLastWord(s, matches);
-        return s.trim();
-    }
-
-    /**
      * remove the first and last match from s
      * @param s
      * @param matches
@@ -520,7 +490,8 @@ public final class TextParser {
      */
     public static String removeFromStartOrEndIfMatch(String s, List<String> matches) {
         if(startsWithAny(s, matches) || endsWithAny(s, matches)) {
-            s = s.replaceFirst("(&\\s|AND\\s)", StringUtils.EMPTY);
+            String regex = format("(%s)", matches.stream().map(m -> m+"\\s").collect(Collectors.joining("|")));
+            s = s.replaceFirst(regex, StringUtils.EMPTY);
             return removeIfLastWord(s, matches);
         }
         return s;
@@ -543,7 +514,7 @@ public final class TextParser {
      * @return
      */
     public static boolean startsWithAny(String s, List<String> values) {
-        return values.stream().parallel().anyMatch(s::startsWith);
+        return values.stream().parallel().anyMatch(m -> s.equals(m) || s.startsWith(m+StringUtils.SPACE));
     }
 
     /**
@@ -553,7 +524,7 @@ public final class TextParser {
      * @return
      */
     public static boolean endsWithAny(String s, List<String> values) {
-        return values.stream().parallel().anyMatch(s::endsWith);
+        return values.stream().parallel().anyMatch(m -> s.equals(m) || s.endsWith(StringUtils.SPACE+m));
     }
 
     /**
