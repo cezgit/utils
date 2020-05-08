@@ -483,12 +483,21 @@ public class TextParserTest {
 
     @Test
     void removeFirstAndLastWordsIfMatchTest() {
+        assertThat(removeFirstAndLastWordsIfMatch("& FOO", List.of("&", "AND")),
+                Matchers.is("FOO"));
         assertThat(removeFirstAndLastWordsIfMatch("AND FOO", List.of("AND", "OR", "NOT")), Matchers.is("FOO"));
         assertThat(removeFirstAndLastWordsIfMatch("FOO AND", List.of("AND", "OR", "NOT")), Matchers.is("FOO"));
         assertThat(removeFirstAndLastWordsIfMatch("OR FOO AND", List.of("AND", "OR", "NOT")), Matchers.is("FOO"));
         assertThat(removeFirstAndLastWordsIfMatch("OR FOO AND BOO", List.of("AND", "OR", "NOT")), Matchers.is("FOO AND BOO"));
         assertThat(removeFirstAndLastWordsIfMatch("NOT BOO OR FOO OR", List.of("AND", "OR", "NOT")), Matchers.is("BOO OR FOO"));
         assertThat(removeFirstAndLastWordsIfMatch("FOO BOO AND LOO", List.of("AND", "OR", "NOT")), Matchers.is("FOO BOO AND LOO"));
+    }
+
+    @Test
+    void removeFromStartOrEndIfMatchTest() {
+        assertThat(removeFromStartOrEndIfMatch("& FOO", List.of("&", "AND")), is("FOO"));
+        assertThat(removeFromStartOrEndIfMatch("FOO &", List.of("&", "AND")), is("FOO"));
+        assertThat(removeFromStartOrEndIfMatch("& FOO &", List.of("&", "AND")), is("FOO"));
     }
 
     @Test

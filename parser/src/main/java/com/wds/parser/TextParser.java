@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 
 public final class TextParser {
@@ -246,7 +247,7 @@ public final class TextParser {
      * @return
      */
     public static String removeCharAttachedToWord(String s, String ch) {
-        return s.replaceAll(String.format("\\B%s\\b|\\b%s\\B", ch, ch), StringUtils.EMPTY);
+        return s.replaceAll(format("\\B%s\\b|\\b%s\\B", ch, ch), StringUtils.EMPTY);
     }
 
     /**
@@ -449,7 +450,7 @@ public final class TextParser {
      */
     public static String escapeIfRegex(String s) {
         List<String> specialChars = List.of("(",")","[","]","{","}","+","?");
-        return specialChars.contains(s) ? String.format("\\%s",s) : s;
+        return specialChars.contains(s) ? format("\\%s",s) : s;
     }
 
     public static String escapeIfContainsRegex(String s) {
@@ -487,11 +488,12 @@ public final class TextParser {
      * @param regex
      * @return
      */
+    @Deprecated // replaced by removeFromStartOrEndIfMatch
     public static String removeFirstAndLastCharsIfMatch(String s, String regex) {
-        if(s.matches(String.format("^%s.*$", regex))) {
+        if(s.matches(format("^%s.*$", regex))) {
             s = s.replaceFirst(regex, StringUtils.EMPTY);
         }
-        if(s.matches(String.format("^.*%s$", regex))) {
+        if(s.matches(format("^.*%s$", regex))) {
             s = s.substring(0, s.length()-1);
         }
         return s.trim();
@@ -503,10 +505,25 @@ public final class TextParser {
      * @param matches
      * @return
      */
+    @Deprecated // replaced by removeFromStartOrEndIfMatch
     public static String removeFirstAndLastWordsIfMatch(String s, List<String> matches) {
         s = s.replaceFirst("^"+getEqualsAnyRegex(matches), StringUtils.EMPTY);
         s = removeIfLastWord(s, matches);
         return s.trim();
+    }
+
+    /**
+     * remove the first and last match from s
+     * @param s
+     * @param matches
+     * @return
+     */
+    public static String removeFromStartOrEndIfMatch(String s, List<String> matches) {
+        if(startsWithAny(s, matches) || endsWithAny(s, matches)) {
+            s = s.replaceFirst("(&\\s|AND\\s)", StringUtils.EMPTY);
+            return removeIfLastWord(s, matches);
+        }
+        return s;
     }
 
     /**
