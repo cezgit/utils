@@ -130,6 +130,8 @@ public final class TextParser {
 
     /**
      * remove single or double surrounding quotes
+     * single quotes are only removed around strings not containing spaces - to avoid clobbering of names like WE'VE GOT A FUZZBOX AND WE'RE GONNA USE IT
+     * double quotes are removed around any type of strings
      */
     public static String removeSurroundingQuotes(String s) {
         s = fixMultiSpaces(s.replaceAll("'([^\\s]+)'", "$1"));
@@ -596,5 +598,9 @@ public final class TextParser {
     public static List<String> firstWordsAsList(String s, int count) {
         List<String> list = breakBySpace(s);
         return count >= list.size() ? list : list.subList(0, count);
+    }
+
+    public static String removeBraces(String s) {
+        return fixMultiSpaces(s.replaceAll("(\\[|\\{|\\(|\\)|\\}|\\])", StringUtils.SPACE));
     }
 }

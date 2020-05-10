@@ -174,6 +174,7 @@ public class TextParserTest {
         assertEquals("IT'S N WORD", removeSurroundingQuotes("IT'S \"N\" WORD"));
         assertEquals("IT'S 'N WORD", removeSurroundingQuotes("IT'S 'N WORD"));
         assertEquals("NO MORE I LOVE YOU'S", removeSurroundingQuotes("NO MORE \"I LOVE YOU'S\""));
+        assertEquals("ALIVE 'N KICKIN'", removeSurroundingQuotes("ALIVE 'N KICKIN'"));
     }
 
     @Test
@@ -321,6 +322,9 @@ public class TextParserTest {
 
     @Test
     public void removeBracketedContentTest() {
+
+        assertEquals("NIGHT BOAT TO CAIRO",
+                removeBracketedContent("NIGHT BOAT TO CAIRO (WORK REST AND PLAY) (EP)", true, false, false));
 
         assertEquals("SOMETHING GOOD",
                 removeBracketedContent("SOMETHING [BAD AND] GOOD", false, true, true ));
@@ -550,6 +554,14 @@ public class TextParserTest {
     public void firstWordsAsStringTest() {
         assertThat(firstWordsAsString("MC SAR THE REAL MCCOY", 4), is("MC SAR THE REAL"));
         assertThat(firstWordsAsString("MC SAR", 3), is("MC SAR"));
+    }
+
+    @Test
+    public void removeBracesTest() {
+        assertThat(removeBraces("foo (this)"), is("foo this"));
+        assertThat(removeBraces("foo [this]"), is("foo this"));
+        assertThat(removeBraces("foo {this}"), is("foo this"));
+        assertThat(removeBraces("foo {this} and (that)"), is("foo this and that"));
     }
 
     private String removeContentBetweenRoundBracketsIfEqualsAny(String s) {
