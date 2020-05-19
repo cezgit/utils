@@ -1,6 +1,8 @@
 package com.wds.parser;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -317,6 +319,19 @@ class TextModifierTest {
         assertThat(removeBraces("foo [this]"), CoreMatchers.is("foo this"));
         assertThat(removeBraces("foo {this}"), CoreMatchers.is("foo this"));
         assertThat(removeBraces("foo {this} and (that)"), CoreMatchers.is("foo this and that"));
+    }
+
+    @Test
+    void addApostropheIfMissingTest() {
+        assertThat(addApostropheIfMissing("B-52S"), CoreMatchers.is("B-52'S"));
+        assertThat(addApostropheIfMissing("COOLS"), CoreMatchers.is("COOLS"));
+    }
+
+    @Test
+    void removeAccentsAndConvertToUpperTest() {
+        assertEquals(removeAccentsAndConvertToUpper("tréma"), "TREMA");
+        assertThat(StringUtils.stripAccents("MOTÖRHEAD"), CoreMatchers.is("MOTORHEAD"));
+        assertThat(StringUtils.stripAccents("SAD CAFÉ"), CoreMatchers.is("SAD CAFE"));
     }
 
     private String removeContentBetweenRoundBracketsIfEqualsAny(String s) {

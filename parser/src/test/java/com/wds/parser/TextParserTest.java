@@ -2,6 +2,7 @@ package com.wds.parser;
 
 
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -237,4 +238,10 @@ public class TextParserTest {
         assertEquals("AB CD", joinAsString(asList("AB", "CD")));
         assertEquals(joinAsString(getTokensAsList("ABC DE RRR", " ")), "ABC DE RRR");
     }
+
+    @Test
+    void wordCounterTest() {
+        assertEquals(wordCounter.apply("THIS COUNT SHOULD BE FIVE"), 5);
+    }
+
 }

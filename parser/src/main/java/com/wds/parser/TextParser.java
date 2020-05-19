@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.wds.parser.TextModifier.removeIfStartsWithToken;
@@ -191,8 +192,13 @@ public final class TextParser {
      * @return
      */
     public static int countWords(String s) {
-        return StringUtils.isBlank(s) ? 0 : s.split("\\s+").length;
+        return StringUtils.isBlank(s) ? 0 : wordCounter.apply(s);
     }
+
+    /**
+     * count the words separated by spaces in a string s
+     */
+    public static Function<String, Integer> wordCounter = (String s) -> s.split("\\s+").length;
 
     /**
      * join all the strings from list using space into one string

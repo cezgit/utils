@@ -381,6 +381,30 @@ public class TextModifier {
         return s;
     }
 
+    /**
+     * if s ends in a digit followed by an "S" - 80S - put a quote between the last digit and the S - 80'S
+     * @param s
+     * @return
+     */
+    public static String addApostropheIfMissing(String s) {
+        if(s.matches("^.*\\dS$"))
+            return StringUtils.chop(s)+ "'" + s.charAt(s.length()-1);
+        return s;
+    }
+
+    /**
+     * strip all accents and convert to upper case
+     * @param s
+     * @return
+     */
+    public static String removeAccentsAndConvertToUpper(String s) {
+        if (StringUtils.isEmpty(s))
+            return s;
+
+        String result = StringUtils.stripAccents(s);
+        return fixMultiSpaces(result.toUpperCase());
+    }
+
     public static String removeBraces(String s) {
         return fixMultiSpaces(s.replaceAll("(\\[|\\{|\\(|\\)|\\}|\\])", StringUtils.SPACE));
     }
