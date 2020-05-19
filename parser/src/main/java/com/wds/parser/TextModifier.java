@@ -1,71 +1,269 @@
 package com.wds.parser;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.wds.parser.TextParser.*;
+import static java.lang.String.format;
 
 public class TextModifier {
 
-    public static String removeNonAlphaNumericChars(String s) {
-        return s.replaceAll("[^a-zA-Z0-9]", "");
-    }
-    public static Function<String, String> nonAlphaNumericCharRemover = s -> removeNonAlphaNumericChars(s);
+    public static Function<String, String> nonAlphaNumericCharRemover = s -> s.replaceAll("[^a-zA-Z0-9]", StringUtils.EMPTY);
+    public static Function<String, String> nonAlphaNumericCharRemoverExcludingSpaces = s -> fixMultiSpaces(s.replaceAll("[^a-zA-Z0-9 ]", StringUtils.EMPTY));
+    public static Function<String, String> removeSequentialDupes = (String s) -> s.replaceAll("(?i)\\b([a-z]+)\\b(?:\\s+\\1\\b)+", "$1");
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * remove chars from s based on the regex
+     * @param s
+     * @param regex
+     * @return
+     */
     public static String removeChars(String s, String regex) {
-        String replacement = "";
-        return fixMultiSpaces(s.replaceAll(regex, replacement));
+        return fixMultiSpaces(s.replaceAll(regex, StringUtils.EMPTY));
     }
 
-
-
-
-
-    // regex example: "\\b(FT|FEAT|FEATURING|PERFORMED BY)\\b"
-    public static String removeWords(String s, String regex) {
-        String delimiter = " ";
-        return String.join(delimiter, getTokensAsList(s, regex));
+    public static String replaceParentheses(String s, String replacement) {
+        return fixMultiSpaces(s.replace("(", replacement).replace(")", replacement));
     }
 
-
-    public static String removeAll(String s, Set<String> removables) {
-        return joinAsString(getTokensAsList(s, getEqualsAnyRegex(new ArrayList<>(removables))));
+    /**
+     * remove the last char of s if it matches the regex
+     * @param s
+     * @return
+     */
+    public static String removeLastChar(String s, String regex) {
+        if(s.matches(regex)) //
+            return StringUtils.chop(s).trim();
+        return s;
     }
 
-    public static String removeLastContentBetweenIfMatchEquals(String s, String from, String to, List<String> matches) {
-        if(s.endsWith(to)) {
-            int lastIndex = s.lastIndexOf(from);
-            if(lastIndex >= 0) {
-                String token = s.substring(lastIndex+1, s.indexOf(to, lastIndex)).trim();
-                if (equalsAny(token, matches))
-                    return removeContentBetweenMarkers(s, from, Optional.of(to));
+    /**
+     * matches keys anywhere in s and replaces them with the corresponding values
+     * @param s
+     * @return
+     */
+    public static String replaceAll(String s, Map<String, String> replaceMap) {
+        for(String key: replaceMap.keySet())
+            s = s.replaceAll(key, replaceMap.get(key));
+        return s;
+    }
+
+    /**
+     * replace word tokens from map.keys if they exist in s
+     * WARNING: make sure regex chars in map.keys are escaped!
+     */
+    public static BiFunction<String, Map<String, String>, String> tokenReplacer = (s, map) -> {
+        Set<String> escapedSet = map.keySet().stream().map(TextModifier::escapeIfContainsRegex).collect(Collectors.toSet());
+        String regex = TextParser.getEqualsAnyRegex(new ArrayList(escapedSet));
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(s);
+        StringBuffer sb = new StringBuffer();
+        try {
+            while (m.find()) {
+                String toReplace = m.group();
+                m.appendReplacement(sb, map.get(toReplace));
             }
+        } catch(NullPointerException e) {
+            throw new RuntimeException("TOKEN MAP keys might contain unescaped regex chars: "+map.keySet());
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    };
+
+    /**
+     * remove single or double surrounding quotes
+     * single quotes are only removed around strings not containing spaces - to avoid clobbering of names like WE'VE GOT A FUZZBOX AND WE'RE GONNA USE IT
+     * double quotes are removed around any type of strings
+     */
+    public static String removeSurroundingQuotes(String s) {
+        s = fixMultiSpaces(s.replaceAll("'([^\\s]+)'", "$1"));
+        return fixMultiSpaces(s.replaceAll("\"(.*)\"", "$1"));
+    }
+
+    /**
+     * remove the first char of a string s if char matches the regex
+     * @param s
+     * @param regex
+     * @return
+     */
+    public static String removeIfFirstCharMatchesRegex(String s, String regex) {
+        if(s.length() <= 1)
+            return s;
+        return s.matches(regex) ?
+                s.substring(1).trim() :
+                s;
+    }
+
+    /**
+     * remove token if string starts with it
+     * @param s
+     * @return
+     */
+    public static String removeIfStartsWithToken(String s, String token) {
+        if(s.length() <= token.length())
+            return s;
+        if(s.startsWith(token)) {
+            return s.replaceFirst(token, StringUtils.EMPTY).trim();
         }
         return s;
     }
 
-    public static String removeLastContentAfterSeparatorIfMatchEquals(String s, String separator, List<String> matches) {
-        int index = s.lastIndexOf(separator);
+    /**
+     * remove dots from a string but not instances of dots that are consecutive
+     * @param s
+     * @return
+     */
+    public static String removeDotsIfNotConsecutive(String s) {
+        if(s.length() <= 1)
+            return s;
+        return s.replaceAll("(?<!\\.)\\.(?!\\.)", StringUtils.EMPTY).trim();
+    }
+
+    /**
+     * remove the ending (regex) of a string if matched
+     * @param s
+     * @param regex
+     * @return
+     */
+    public static String removeIfEndsWith(String s, String regex) {
+        return fixMultiSpaces(s.replaceAll("^(.*)"+regex+"$", "$1"));
+    }
+
+    /**
+     * remove last char from s if it ends with charToMatch
+     * @param s
+     * @return
+     */
+    public static String removeIfLastCharMatches(String s, String charToMatch) {
+        if(s.length() <= 1)
+            return s;
+        return s.endsWith(charToMatch) ? StringUtils.chop(s) : s;
+    }
+
+    /**
+     * remove the last char of a string s if char matches the regex
+     * @param s
+     * @param regex
+     * @return
+     */
+    public static String removeIfLastCharMatchesRegex(String s, String regex) {
+        if(s.length() <= 1)
+            return s;
+        return s.matches(regex) ?
+                StringUtils.chop(s).trim() :
+                s;
+    }
+
+    /**
+     * remove last word from s if it ends with any value
+     * @param s
+     * @return
+     */
+    public static String removeIfLastWord(String s, List<String> values) {
+        Optional<String> lastWord = getLastWord(s);
+        if(!lastWord.isPresent())
+            return s;
+        return values.contains(lastWord.get()) ?
+                s.substring(0, s.lastIndexOf(lastWord.get())).trim() : s;
+    }
+
+    /**
+     * remove char attached to a word
+     * @param s
+     * @param ch
+     * @return
+     */
+    public static String removeCharAttachedToWord(String s, String ch) {
+        return s.replaceAll(format("\\B%s\\b|\\b%s\\B", ch, ch), StringUtils.EMPTY);
+    }
+
+    /**
+     * replace all multi spaces with one space
+     * @param s
+     * @return
+     */
+    public static String fixMultiSpaces(String s) {
+        return s.replaceAll(" +", StringUtils.SPACE).trim();
+    }
+
+    /**
+     * replace repeating chars with one char
+     * @param s
+     * @return
+     */
+    public static String fixMultiChars(String s, String charToFixAsRegex) {
+        if(s.length() <= 1 || s.replaceAll(charToFixAsRegex, StringUtils.EMPTY).trim().length() <= 1)
+            return s;
+        return s.replaceAll("(?s)("+charToFixAsRegex+")\\1+", "$1");
+    }
+
+    /**
+     * remove bracketed content from string s, for the brackets marked as true
+     * @param s
+     * @param round
+     * @param square
+     * @param curly
+     * @return
+     */
+    public static String removeBracketedContent(
+            String s, boolean round, boolean square, boolean curly) {
+
+        String result = s.trim();
+
+        if(round) {
+            result = result.replaceAll("[\\(].*[\\)]", StringUtils.SPACE);
+        }
+        if(square) {
+            result = result.replaceAll("[\\[].*[\\]]", StringUtils.SPACE);
+        }
+        if(curly) {
+            result = result.replaceAll("[\\{].*[\\}]", StringUtils.SPACE);
+        }
+        return fixMultiSpaces(result);
+    }
+
+    /**
+     * remove content between 2 chars if they are identical to any string in the list
+     * @param s
+     * @param from
+     * @param to
+     * @param matches
+     * @return
+     */
+    public static String removeContentBetweenMarkersIfEqualsAny(String s, String from, String to, List<String> matches) {
+
+        String regex = getEqualsAnyRegex(matches);
+        return fixMultiSpaces(s.replaceAll("(?s)"+escapeIfRegex(from)+regex+"?"+escapeIfRegex(to), StringUtils.EMPTY));
+    }
+
+    /**
+     * remove content between 2 chars if they start with any string in the list
+     * @param s
+     * @param from
+     * @param to
+     * @param matches
+     * @return
+     */
+    public static String removeContentBetweenMarkersIfContentStartWithAny(String s, String from, String to, List<String> matches) {
+        String regex = "("+matches.stream().collect(Collectors.joining("|"))+")"+".*";
+        return fixMultiSpaces(s.replaceAll(escapeIfRegex(from)+regex+escapeIfRegex(to)+".*?", StringUtils.EMPTY));
+    }
+
+    /**
+     * remove content after a marker if it equals any of the strings in the list
+     * @param s
+     * @param separator
+     * @param matches
+     * @return
+     */
+    public static String removeContentAfterMarkerIfEqualsAny(String s, String separator, List<String> matches) {
+        int index = s.indexOf(separator);
         if(index < 0) return s;
 
         String content = s.substring(index + separator.length()).trim();
@@ -75,47 +273,115 @@ public class TextModifier {
         return s;
     }
 
-
-
-
-//    public static String removeBracketedContentIfRightBracketIsLastChar(String s, boolean round, boolean square, boolean curly) {
-//        if(endsWithAny(s, asList(")", "]", "}"))) {
-//            if(round && s.endsWith(")"))
-//                return removeContentBetweenMarkers(s, "(", Optional.of(")"));
-//            else if(square && s.endsWith("]"))
-//                return removeContentBetweenMarkers(s, "[", Optional.of(")"));
-//            else if(curly && s.endsWith("]}"))
-//                return removeContentBetweenMarkers(s, "{", Optional.of(")"));
-//
-//        }
-//        return s;
-//    }
-
-    public static String removeContentBetweenChars(String result, char c) {
-        long quotes = result.codePoints().filter(s -> s == c).count();
-        if(quotes == 2) {
-            List<String> l = getTokensAsList(result, String.valueOf(c));
-            if(l.size() > 2) {
-                return String.join(" ", l.get(0), l.get((2)));
+    /**
+     * remove content between last instance of 2 markers if it contains any of the words in the list
+     * @param s
+     * @param from
+     * @param to
+     * @param words
+     * @return
+     */
+    public static String removeContentBetweenLastMarkersIfContainsWord(String s, String from, String to, List<String> words) {
+        if(s.endsWith(to)) {
+            int lastIndex = s.lastIndexOf(from);
+            if(lastIndex >= 0) {
+                String token = s.substring(lastIndex+1, s.indexOf(to, lastIndex)).trim();
+                if (containsAnyWord(token, words))
+                    return removeContentBetweenMarkers(s, from, Optional.of(to));
             }
         }
-        return result;
+        else {
+            int lastIndex = s.lastIndexOf(from);
+            if(lastIndex >= 0 && s.indexOf(to, lastIndex) < 0) {
+                String token = s.substring(lastIndex + 1).trim();
+                if (containsAnyWord(token, words))
+                    return removeContentBetweenMarkers(s, from, Optional.empty());
+            }
+        }
+
+        return s;
     }
 
-    public static String removeSequentialDupes(String s) {
-        return s.replaceAll("(?i)\\b([a-z]+)\\b(?:\\s+\\1\\b)+", "$1");
+    /**
+     * remove content between 2 markers or after the first marker if second marker is not specified
+     * @param s
+     * @param from
+     * @param to
+     * @return
+     */
+    public static String removeContentBetweenMarkers(String s, String from, Optional<String> to) {
+        int lastIndex = s.lastIndexOf(from);
+        if(lastIndex >= 0)
+            if(to.isPresent())
+                return s.endsWith(to.get()) ? s.substring(0, lastIndex).trim() : s;
+            else
+                return s.substring(0, lastIndex).trim();
+        return s;
     }
 
-    public static String replaceAllWithSpace(String s, String regex) {
-        String replacement = " ";
-        return TextParser.fixMultiSpaces(s.replaceAll(regex, replacement));
+    /**
+     * remove content after a marker if it contains any of the words in the list
+     * @param s
+     * @param marker
+     * @param words
+     * @return
+     */
+    public static String removeContentAfterMarkerIfContainsWord(String s, String marker, List<String> words) {
+        int index = s.indexOf(marker);
+        if(index < 0) return s;
+
+        String content = s.substring(index + marker.length()).trim();
+        if(containsAnyWord(content, words)) {
+            return s.substring(0, index).trim();
+        }
+        return s;
     }
 
-    public static String replaceParentheses(String s, String replacement) {
-        return TextParser.fixMultiSpaces(s.replace("(", replacement).replace(")", replacement));
+    /**
+     * return escaped strings if they are regex strings
+     * @param s
+     * @return
+     */
+    public static String escapeIfRegex(String s) {
+        List<String> specialChars = List.of("(",")","[","]","{","}","+","?");
+        return specialChars.contains(s) ? format("\\%s",s) : s;
     }
 
+    public static String escapeIfContainsRegex(String s) {
+        List<String> specialChars = List.of("(",")","[","]","{","}","+","?");
+        return s.codePoints()
+                .mapToObj(c -> specialChars.contains(Character.toString(c)) ? "\\"+(char)c : StringUtils.EMPTY+(char)c)
+                .collect(Collectors.joining());
+    }
 
+    /**
+     * remove the content after any match form the list
+     * @param s
+     * @param matches
+     * @return
+     */
+    public static String removeContentAfterMatch(String s, List<String> matches) {
+        String splitter = "|";
+        String result = fixMultiSpaces(s.replaceAll(getEqualsAnyRegex(matches), splitter));
+        return getFirstToken(result, "\\"+splitter).trim();
+    }
 
+    /**
+     * remove the first and last match from s
+     * @param s
+     * @param matches
+     * @return
+     */
+    public static String removeFromStartOrEndIfMatch(String s, List<String> matches) {
+        if(startsWithAny(s, matches) || endsWithAny(s, matches)) {
+            String regex = format("(%s)", matches.stream().map(m -> m+"\\s").collect(Collectors.joining("|")));
+            s = s.replaceFirst(regex, StringUtils.EMPTY);
+            return TextModifier.removeIfLastWord(s, matches);
+        }
+        return s;
+    }
 
+    public static String removeBraces(String s) {
+        return fixMultiSpaces(s.replaceAll("(\\[|\\{|\\(|\\)|\\}|\\])", StringUtils.SPACE));
+    }
 }
