@@ -47,4 +47,20 @@ public class CollectionUtils {
     public static String shortestWord(List<String> set) {
         return Collections.min(set, Comparator.comparing(String::length));
     }
+
+    /**
+     * get a map's key by value
+     * @param map
+     * @param value
+     * @param <K>
+     * @param <V>
+     * @return the key corresponding to the value arg
+     */
+    public static <K, V> K getMapKey(Map<K, V> map, V value) {
+        return map.entrySet()
+                .stream()
+                .filter(entry -> value.equals(entry.getValue()))
+                .map(Map.Entry::getKey)
+                .findFirst().get();
+    }
 }
