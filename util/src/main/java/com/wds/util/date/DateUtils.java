@@ -1,14 +1,59 @@
 package com.wds.util.date;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 
+import static java.lang.String.format;
+
 public class DateUtils {
+
+    private static Logger logger = LogManager.getLogger(DateUtils.class);
+
+    public static final String simpleDateFormat = "yyyyMMdd";
+    public static final String dashedDateFormat = "yyyy-MM-dd";
+    public static final String dashedDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
+
+    public static final DateTimeFormatter simpleDateFormatter = DateTimeFormatter.ofPattern(simpleDateFormat);
+    public static final DateTimeFormatter dashedDateFormatter = DateTimeFormatter.ofPattern(dashedDateFormat);
+    public static final DateTimeFormatter dashedDateTimeFormatter = DateTimeFormatter.ofPattern(dashedDateTimeFormat);
+
+    /**
+     * attempt to parse a string date
+     * @param s
+     * @return an Optional of LocalDate or Optional.empty() if s param is not formatted as yyyy-MM-dd
+     */
+    public static Optional<LocalDate> parseDate(String s) {
+        try {
+            return Optional.of(LocalDate.parse(s));
+        } catch (Exception e) {
+            logger.error(format("Failed parsing date %s! Expected format was: %s", s, dashedDateFormat));
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * attempt to parse an integer date
+     * @param i
+     * @return an Optional of LocalDate or Optional.empty() if s param is not formatted as yyyyMMdd
+     */
+    public static Optional<LocalDate> parseDateFromInt(Integer i) {
+        try {
+            return Optional.of(LocalDate.parse(String.valueOf(i), simpleDateFormatter));
+        } catch (Exception e) {
+            logger.error(format("Failed parsing date %d! Expected format was: %s", i, simpleDateFormat));
+            return Optional.empty();
+        }
+
+    }
 
     // s is yyyyMMdd
     public static Date dateFrom(String s) {
