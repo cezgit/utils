@@ -27,6 +27,10 @@ class TextModifierTest {
         assertEquals("FO O", nonAlphaNumericCharRemoverExcludingSpaces.apply("FO -O"));
     }
 
+    @Test
+    public void nonAlphaNumericCharRemoverExceptOtherRegexTest() {
+        assertEquals("FOO+LS", nonAlphaNumericCharRemoverExceptOtherRegex.apply("FO*O+L'S", "\\+"));
+    }
 
     @Test
     public void removeCharsTest() {

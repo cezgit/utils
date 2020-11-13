@@ -16,6 +16,7 @@ public class TextModifier {
 
     public static Function<String, String> nonAlphaNumericCharRemover = s -> s.replaceAll("[^a-zA-Z0-9]", StringUtils.EMPTY);
     public static Function<String, String> nonAlphaNumericCharRemoverExcludingSpaces = s -> fixMultiSpaces(s.replaceAll("[^a-zA-Z0-9 ]", StringUtils.EMPTY));
+    public static BiFunction<String, String, String> nonAlphaNumericCharRemoverExceptOtherRegex = (s, exceptionsRegex) -> s.replaceAll("[^a-zA-Z0-9"+exceptionsRegex+"]", StringUtils.EMPTY);
     public static Function<String, String> removeSequentialDupes = (String s) -> s.replaceAll("(?i)\\b([a-z]+)\\b(?:\\s+\\1\\b)+", "$1");
 
     /**
