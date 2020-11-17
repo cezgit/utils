@@ -56,7 +56,13 @@ public final class TextParser {
         return s.matches(regex);
     }
 
+    public static boolean containsAnyWordRegex(String s, List<String> values) {
+        String valuesRegex = values.stream().collect(Collectors.joining("|"));
+        return s.matches("(^|.*)("+valuesRegex+")(.*|$)");
+    }
+
     /**
+     * @deprecated - not working properly - use containsAnyWordRegex instead
      * get the regex for matching anywhere within a string any of the list values
      * @param values
      * @return

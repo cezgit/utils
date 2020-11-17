@@ -58,6 +58,16 @@ public class TextParserTest {
     }
 
     @Test
+    public void containsAnyWordRegex() {
+        List values = List.of(",\\sJR", "\\(SOUNDTRACK\\)", "L\\.A\\.", "LILLYWOOD");
+        assertTrue(TextParser.containsAnyWordRegex("LILLYWOOD", values));
+        assertTrue(TextParser.containsAnyWordRegex("FOO? (SOUNDTRACK)", values));
+        assertTrue(TextParser.containsAnyWordRegex("FOO? (SOUNDTRACK) EXISTS", values));
+        assertTrue(TextParser.containsAnyWordRegex("FOO, JR. IS", values));
+        assertTrue(TextParser.containsAnyWordRegex("FROM L.A.", values));
+    }
+
+    @Test
     public void getContainsAnyRegexTest() {
         String regex = getContainsAnyRegex(asList("THE ONE", "ANOTHER"));
         assertEquals("^.*?\\b(THE ONE|ANOTHER)\\b.*$", regex);
