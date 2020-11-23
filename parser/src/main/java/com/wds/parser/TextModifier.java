@@ -1,9 +1,12 @@
 package com.wds.parser;
 
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -409,4 +412,32 @@ public class TextModifier {
     public static String removeBraces(String s) {
         return fixMultiSpaces(s.replaceAll("(\\[|\\{|\\(|\\)|\\}|\\])", StringUtils.SPACE));
     }
+
+    public static Function<Parenthesis, Tuple2<Character, Character>> parens = (pType) -> {
+        char openParen = '(';
+        char closeParen = ')';
+        if(pType == Parenthesis.SQUARE) {
+            openParen = '[';
+            closeParen = ']';
+        }
+        else if(pType == Parenthesis.CURLY) {
+            openParen = '{';
+            closeParen = '}';
+        }
+        return Tuple.of(openParen, closeParen);
+    };
+
+    public static BiFunction<String, Parenthesis, String> removeAllParensIfUnmatched = (a, pType) -> {
+        if (a.isEmpty())
+            return a;
+
+        Tuple2<Character, Character> parenthesis = parens.apply(pType);
+        long openedCount = a.chars().filter(ch -> ch == parenthesis._1).count();
+        long closedCount = a.chars().filter(ch -> ch == parenthesis._2).count();
+
+        if(openedCount != closedCount) {
+            return removeChars(a, "[\\"+parenthesis._1+"\\"+parenthesis._2+"]");
+        }
+        return a;
+    };
 }

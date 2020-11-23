@@ -2,7 +2,6 @@ package com.wds.parser;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.CoreMatchers;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -336,6 +335,13 @@ class TextModifierTest {
         assertEquals(removeAccentsAndConvertToUpper("tréma"), "TREMA");
         assertThat(StringUtils.stripAccents("MOTÖRHEAD"), CoreMatchers.is("MOTORHEAD"));
         assertThat(StringUtils.stripAccents("SAD CAFÉ"), CoreMatchers.is("SAD CAFE"));
+    }
+
+    @Test
+    void removeUnmatchedParentheses() {
+        assertThat(removeAllParensIfUnmatched.apply("()())()", Parenthesis.ROUND), is(""));
+        assertThat(removeAllParensIfUnmatched.apply("()v)", Parenthesis.ROUND), is("v"));
+        assertThat(removeAllParensIfUnmatched.apply("v)))", Parenthesis.ROUND), is("v"));
     }
 
     private String removeContentBetweenRoundBracketsIfEqualsAny(String s) {
