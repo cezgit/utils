@@ -48,6 +48,12 @@ public class CollectionUtils {
         return Collections.min(set, Comparator.comparing(String::length));
     }
 
+    public static <T> Set<T> mergeSets(Set<T> s1, Set<T> s2) {
+        Set<T> mergedSet = s1.stream().collect(Collectors.toSet());
+        mergedSet.addAll(s2);
+        return mergedSet;
+    }
+
     /**
      * get a map's key by value
      * @param map
