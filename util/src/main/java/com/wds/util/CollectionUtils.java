@@ -54,6 +54,12 @@ public class CollectionUtils {
         return mergedSet;
     }
 
+    public static <T> Set<T> differenceBetweenSets(final Set<T> setOne, final Set<T> setTwo) {
+        Set<T> result = new HashSet<>(setOne);
+        result.removeIf(setTwo::contains);
+        return result;
+    }
+
     /**
      * get a map's key by value
      * @param map
