@@ -4,14 +4,26 @@ import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * more here: https://www.baeldung.com/reading-file-in-java
  */
 public class FileUtils {
+
+    public static List<String> readFileLines(String filePath) throws IOException {
+        List<String> result;
+        try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
+            result = lines.collect(Collectors.toList());
+        }
+        return result;
+    }
 
     public static BiConsumer<File, File> fileMover = (dirSrc, dirTarget) -> {
         try {
