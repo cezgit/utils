@@ -3,6 +3,7 @@ package com.wds.util.date;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -85,4 +86,16 @@ public class DateUtils {
 
     // use: MIN_DATE.apply(d1, d2)
     public static final BinaryOperator<LocalDate> MIN_DATE = BinaryOperator.minBy(Comparator.naturalOrder());
+
+    /**
+     * logs duration in seconds between start and current
+     * @param start
+     * @param stepDescription
+     * @return current as Instant
+     */
+    public static Instant logDuration(Instant start, String stepDescription) {
+        Instant current = Instant.now();
+        logger.info(format("%d seconds ==> %s", Duration.between(start, current).toSeconds()), stepDescription);
+        return current;
+    }
 }
