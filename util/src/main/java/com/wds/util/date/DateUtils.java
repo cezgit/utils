@@ -95,7 +95,7 @@ public class DateUtils {
      */
     public static Instant logDuration(Instant start, String stepDescription) {
         Instant current = Instant.now();
-        logger.info(format("%d seconds ==> %s", Duration.between(start, current).toSeconds()), stepDescription);
+        logger.info(format("%d seconds ==> %s", Duration.between(start, current).toSeconds(), stepDescription));
         return current;
     }
 }
