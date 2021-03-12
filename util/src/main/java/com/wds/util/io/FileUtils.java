@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -27,6 +28,8 @@ public class FileUtils {
     private static Logger logger = LogManager.getLogger(FileUtils.class);
 
     public static List<String> readFileLines(String filePath) throws IOException {
+        if(!Files.exists(Paths.get(filePath)))
+            return new ArrayList<>();
         List<String> result;
         try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
             result = lines.collect(Collectors.toList());
